@@ -27,3 +27,6 @@ $('#id-of-select-box').selectplus({
       }
   });
 ```
+All select elements replaced by SelectPlus still retains their default functionality as an input field, i.e. the selected value will still be sent on a form submit.
+
+To see a live demo of SelectPlus, visit http://www.minamiki.com/selectplus
