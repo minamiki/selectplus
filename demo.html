@@ -47,7 +47,7 @@ $(document).ready(function(){
     
     <h2>Select element with local data</h2>
     <p>SelectPlus allows you to turn this:</p>
-<select id="original" style="width:300px">
+<select id="original" name="original" style="width:300px">
         <optgroup label="Alaskan/Hawaiian Time Zone">
             <option value="AK">Alaska</option>
             <option value="HI">Hawaii</option>
@@ -110,7 +110,7 @@ $(document).ready(function(){
         </optgroup>
     </select>
 	<p>into this:</p>
-	<select id="local" style="width:300px">
+	<select id="local" name="local" style="width:300px">
         <optgroup label="Alaskan/Hawaiian Time Zone">
             <option value="AK">Alaska</option>
             <option value="HI">Hawaii</option>
@@ -176,7 +176,7 @@ $(document).ready(function(){
 	<h2>Infinite Scroll with Remote Data</h2>
     <p>SelectPlus load data from a remote source and supports appending of results when the result list is scrolled to the end.<br>
     (This example uses the Rotton Tomatoes API which is limited to 10000 API calls a day)</p>
-	<select id="remote"></select>
+	<select id="remote" name="remote"></select>
 </body>
 
 </html>

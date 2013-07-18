@@ -1,8 +1,7 @@
 (function($){
 	$.fn.selectplus = function(options){
-
+		// default options
 		var settings = $.extend({
-			// defaults
 			remote: {
 				url: null,
 				pageSize: {label: null, value: 10},
@@ -13,15 +12,15 @@
 				hint: 'Type a searchterm',
 				minchar: 3
 			}
-		
 		}, options);
 
-		// Get the options and values for the select element
+		// functions and variables used for selectplus
 		var modules = {
 			// for storing the select element data
 			selectdata: null,
 			remotedata: null,
 			elementID: null,
+			elementName: null,
 			searchVal: null,
 
 			// for keeping track the remote feed
@@ -32,6 +31,7 @@
 
 			// pointers to the contructed select element
 			ui: {
+				raw: null,
 				anchor: null,
 				root: null,
 				result: null,
@@ -41,7 +41,7 @@
 				dropdown: null
 			},
 
-			// read the select's options
+			// read the local select's options
 			parseElement: function(element){
 				var selectArray = new Array();
 
@@ -76,6 +76,10 @@
 
 				// original form element (now as a hidden element)
 				this.ui.root.append('<input type="hidden" id="'+modules.elementID+'" />');
+				this.ui.raw = $('#'+modules.elementID);
+				if(typeof modules.elementName !== 'undefined'){
+					this.ui.raw.attr('name', modules.elementName)
+				}
 
 				// select element (defaults to first item on list)
 				this.ui.root.append('<div class="ui-select-display"></div>');
@@ -99,8 +103,12 @@
 				this.ui.result = $('#'+this.elementID+'-ui .ui-select-results');
 				
 				// populate result dropdown
-				if(!this.checkRemote()){
+				if(!this.checkRemote()){ 
+					// for local source, show all the options
 					this.renderResult(this.selectdata);
+				}else{
+					// for remote source, show a hint
+					this.ui.result.append('Please enter minimum '+settings.remote.minchar+' characters');
 				}
 			},
 
@@ -126,7 +134,6 @@
 						modules.ui.search.trigger('keyup');						
 					}
 				});
-
 				// stop the propagation inside
 				this.ui.root.click(function(event){
 					event.stopPropagation();
@@ -149,7 +156,7 @@
 
 				});
 
-				// result scroll
+				// detect end of result scrolling for remote data (for infinite loading)
 				if(this.checkRemote()){
 					this.ui.result.bind('scroll', function(){
 						if($(this).scrollTop() + $(this).innerHeight() >= $(this)[0].scrollHeight){
@@ -159,7 +166,7 @@
 				}
 			},
 
-			// search the select options
+			// search function
 			search: function(searchvalue){
 				if(this.checkRemote()){ // search remote data
 					$.getJSON(settings.remote.url+'&'+settings.remote.search+'='+encodeURIComponent(searchvalue)+'&'+settings.remote.pageSize.label+'='+settings.remote.pageSize.value+'&'+settings.remote.page.label+'='+settings.remote.page.value+'&callback=?'
@@ -193,14 +200,13 @@
 							}
 						}
 					});
-
 					modules.renderResult(result);
 				}
 			},
 
 			// render the result
 			renderResult: function(result, valueObj, labelObj){
-
+				// function defaults
 				valueObj = typeof valueObj !== 'undefined' ? valueObj : 'val';
 				labelObj = typeof labelObj !== 'undefined' ? labelObj : 'lbl';
 
@@ -213,6 +219,7 @@
 				var displayResult = $('<ul></ul>');
 				var resultArray;
 
+				// determine the result array source
 				if(this.checkRemote()){
 					resultArray = eval('result.'+settings.remote.root);
 				}else{
@@ -247,7 +254,7 @@
 				}
 
 				// if loading from remote source, include a loading bar
-				if(this.checkRemote() && !this.remote.eof){
+				if(this.checkRemote() && !this.remote.eof && displayResult.children().length != 0){
 					this.ui.result.append('<span class="loader">Loading...</span>');
 				}
 				
@@ -255,18 +262,18 @@
 
 			// get the first value
 			getFirstElement: function(){
-				if(this.checkRemote()){
+				if(this.checkRemote()){ // for remote source
 					return settings.remote.hint;
-				}else{
-					if(this.selectdata[0].val instanceof Array){
+				}else{ // for local source
+					if(this.selectdata[0].val instanceof Array){ // optgroup
 						return this.selectdata[0].val[0].lbl
-					}else{
+					}else{ // option
 						return this.selectdata[0].lbl;
 					}					
 				}
 			},
 
-			// focus select element
+			// focus select element, this is to bring the z-index of the div to the top
 			focusElement: function(){
 				$('.select-anchor').removeClass('focus');
 				this.ui.anchor.toggleClass('focus');
@@ -280,15 +287,15 @@
 				}else{
 					return false;
 				}
-
 			},
 
 			// load from remote
 			loadRemote: function(searchvalue){
 				if(this.checkRemote() && !modules.remote.eof){
+					// does a JSONP request
 					$.getJSON(settings.remote.url+'&'+settings.remote.search+'='+encodeURIComponent(searchvalue)+'&'+settings.remote.pageSize.label+'='+settings.remote.pageSize.value+'&'+settings.remote.page.label+'='+modules.remote.page+'&callback=?'
 					).done(function(json){
-						if(eval('json.'+settings.remote.root+'.length') == 0){
+						if(eval('json.'+settings.remote.root+'.length') == 0){ // if no results are returned, we have reached the End of Feed
 							modules.remote.eof = true;
 							modules.renderResult(json);
 						}else{
@@ -299,6 +306,7 @@
 						console.log("Request Failed: "+err);
 					});
 				}
+				// increment the page number so that the next load will request the next page
 				this.remote.page++;
 			},
 
@@ -311,10 +319,10 @@
 				}
 
 				modules.elementID = element.attr('id');
+				modules.elementName = element.attr('name');
 				modules.constructElement(element);
 				modules.initListeners();	
 			}
-
 		}
 
 		// initialise the plugin
@@ -322,5 +330,4 @@
 
 		return this;
 	}
-
 }(jQuery));
