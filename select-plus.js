@@ -4,11 +4,11 @@
 		var settings = $.extend({
 			remote: {
 				url: null,
-				pageSize: {label: null, value: 10},
-				page: {label: null, value:1},
-				root: null,
-				label: null,
-				value: null,
+				pageSize: {label: 'pageSize', value: 10},
+				page: {label: 'page', value:1},
+				root: '',
+				label: 'lbl',
+				value: 'val',
 				hint: 'Type a searchterm',
 				minchar: 3
 			}
